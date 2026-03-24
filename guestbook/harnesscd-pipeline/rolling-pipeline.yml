@@ -6,6 +6,37 @@ pipeline:
   tags: {}
   stages:
     - stage:
+        name: Show Branch and Commit
+        identifier: showBranchCommit
+        description: "Echo the current branch and commit ID"
+        type: Custom
+        spec:
+          execution:
+            steps:
+              - step:
+                  type: ShellScript
+                  name: Echo Branch and Commit
+                  identifier: echoBranchCommit
+                  spec:
+                    shell: Bash
+                    onDelegate: true
+                    source:
+                      type: Inline
+                      spec:
+                        script: |
+                          echo "Branch: ${HARNESS_GIT_BRANCH}"
+                          echo "Commit ID: ${HARNESS_GIT_COMMIT_ID}"
+                    environmentVariables: []
+                    outputVariables: []
+                  timeout: 2m
+        tags: {}
+        failureStrategies:
+          - onFailure:
+              errors:
+                - AllErrors
+              action:
+                type: StageRollback
+    - stage:
         name: deploy-guestbook
         identifier: deployguestbook
         description: ""
