@@ -1,0 +1,42 @@
+# Optional: after you push changes under guestbook/, trigger a Harness pipeline run.
+# Requires GitHub repo secrets: HARNESS_API_KEY, HARNESS_ACCOUNT_ID
+# (create a Harness API token under your profile → API Keys).
+#
+# If secrets are not set, the job exits successfully and you can run the pipeline from the Harness UI.
+# The pipeline definition is Git-backed (REMOTE): each execution loads the latest YAML from your repo.
+
+name: Harness guestbook CD
+
+on:
+  push:
+    branches: [master, main]
+    paths:
+      - "guestbook/**"
+  workflow_dispatch:
+
+jobs:
+  run-harness-pipeline:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Execute Harness pipeline
+        env:
+          HARNESS_API_KEY: ${{ secrets.HARNESS_API_KEY }}
+          HARNESS_ACCOUNT_ID: ${{ secrets.HARNESS_ACCOUNT_ID }}
+          HARNESS_ORG: ${{ secrets.HARNESS_ORG }}
+          HARNESS_PROJECT: ${{ secrets.HARNESS_PROJECT }}
+        run: |
+          set -e
+          if [ -z "${HARNESS_API_KEY}" ] || [ -z "${HARNESS_ACCOUNT_ID}" ]; then
+            echo "HARNESS_API_KEY / HARNESS_ACCOUNT_ID not configured — skipping."
+            echo "Push is on GitHub; open Harness and run guestbook_rolling_pipeline when ready."
+            exit 0
+          fi
+          ORG="${HARNESS_ORG:-default}"
+          PROJ="${HARNESS_PROJECT:-default_project}"
+          PIPE="guestbook_rolling_pipeline"
+          URL="https://app.harness.io/pipeline/api/pipeline/execute/${PIPE}?accountIdentifier=${HARNESS_ACCOUNT_ID}&orgIdentifier=${ORG}&projectIdentifier=${PROJ}"
+          curl -fsS -X POST "$URL" \
+            -H "x-api-key: ${HARNESS_API_KEY}" \
+            -H "Content-Type: application/json" \
+            -d '{}'
+          echo "Harness pipeline ${PIPE} started."
