@@ -1,0 +1,37 @@
+pipeline:
+  name: testing
+  identifier: testing
+  projectIdentifier: default_project
+  orgIdentifier: default
+  tags: {}
+  stages:
+    - stage:
+        name: hello
+        identifier: hello
+        description: "Simple hello world (runs on delegate)"
+        type: Custom
+        spec:
+          execution:
+            steps:
+              - step:
+                  type: ShellScript
+                  name: Hello World
+                  identifier: helloWorld
+                  spec:
+                    shell: Bash
+                    onDelegate: true
+                    source:
+                      type: Inline
+                      spec:
+                        script: |
+                          echo "Hello, world!"
+                    environmentVariables: []
+                    outputVariables: []
+                  timeout: 5m
+        tags: {}
+        failureStrategies:
+          - onFailure:
+              errors:
+                - AllErrors
+              action:
+                type: Abort
